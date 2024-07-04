@@ -1,17 +1,16 @@
 import UserModel from "../models/user.js";
-import User from "../models/user.js";
 import bcryptjs from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 const Signup = async(req,res)=>{
     try {
         const {name,email,password}=req.body
         
-        const user = await User.findOne({email})
+        const user = await UserModel.findOne({email})
         if(user){
             return res.status(400).json({message: "User already exists"})
         }
         const hashedPass = await bcryptjs.hash(password,10)
-        const newUser= new User({name,email,password:hashedPass})
+        const newUser= new UserModel({name,email,password:hashedPass})
         await newUser.save()
 
         res.status(200).json({message: "User created successfully"})
