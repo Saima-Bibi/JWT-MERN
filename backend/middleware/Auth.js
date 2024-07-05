@@ -9,7 +9,7 @@ if(!token){
     return res.status(401).json({message:"no token, Access denied"})
 }
 const user = jwt.verify(token, process.env.SECRET_KEY)
-req.userId= user.id
+req.user= user
 next()
 
 } catch (error) {
