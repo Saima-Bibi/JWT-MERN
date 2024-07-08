@@ -3,6 +3,7 @@ import dbCon from './utils/dbCon.js'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import userRouter from './routes/userRoute.js'
+
 const app = express()
 dotenv.config()
 const PORT = process.env.PORT || 4004
