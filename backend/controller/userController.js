@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import nodemailer from 'nodemailer'
 import otpModel from "../models/userOTP.js";
+import { OTPService } from "../services/otpService.js";
 const Signup = async (req, res) => {
     try {
         const { name, email, password, address, phone } = req.body
@@ -14,7 +15,8 @@ const Signup = async (req, res) => {
         const hashedPass = await bcryptjs.hash(password, 10)
         const newUser = new UserModel({ name, email, password: hashedPass, address, phone })
         await newUser.save()
-
+        OTPService(req)
+       
         res.status(200).json({ message: "User created successfully" })
 
     } catch (error) {
@@ -29,6 +31,9 @@ const Login = async (req, res) => {
         const user = await UserModel.findOne({ email })
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" })
+        }
+        if(user.isVerified === false ){
+            return res.json({ success: false, message: "first verify otp to become verified user" })
         }
         const validPass = await bcryptjs.compare(password, user.password)
         if (!validPass) {
@@ -87,7 +92,7 @@ const sendEmail = async (req, res) => {
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
-    const otpCode = Math.floor(Math.random() * 10000 + 1)
+    const otpCode = Math.floor(Math.random() * 9000) + 1000
     const otpData = new otpModel({
         userId: user._id,
         otp: otpCode,
@@ -149,4 +154,27 @@ const verifyOtpAndResetPassword = async (req, res) => {
 
     return res.status(200).json({ message: 'Password reset successfully' });
 };
-export { Signup, Login, changeUserPassword, sendEmail, verifyOtpAndResetPassword };
+
+const verifyOtp = async(req,res)=>{
+
+    const{otp}= req.body
+    // Find the OTP document
+    
+    const otpDocument = await otpModel.findOne({ otp });
+    
+    if (!otpDocument || otpDocument.expireIn < Date.now()) {
+        return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    const user = await UserModel.findById({_id:otpDocument.userId})
+    console.log(user)
+    if(!user){
+      return res.status(404).json({ message: 'User not found' });
+    }
+    user.isVerified = true
+    await user.save()
+    return res.status(200).json({ message: 'you are now verified user' });
+
+
+}
+export { Signup, Login, changeUserPassword, sendEmail, verifyOtpAndResetPassword, verifyOtp };
