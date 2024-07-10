@@ -1,10 +1,12 @@
 import UserModel from "../models/user.js";
 import bcryptjs from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import nodemailer from 'nodemailer'
 import otpModel from "../models/userOTP.js";
 import { OTPService } from "../services/otpService.js";
-const Signup = async (req, res) => {
+import { emailSender } from "../services/emailSender.js";
+
+
+const signup = async (req, res) => {
     try {
         const { name, email, password, address, phone } = req.body
 
@@ -15,9 +17,16 @@ const Signup = async (req, res) => {
         const hashedPass = await bcryptjs.hash(password, 10)
         const newUser = new UserModel({ name, email, password: hashedPass, address, phone })
         await newUser.save()
-        OTPService(req)
-       
-        res.status(200).json({ message: "User created successfully" })
+        console.log(newUser)
+        const result = await OTPService({newUser} )
+        console.log(result.otp)
+        const obj = {
+            email:newUser.email,
+            subject:process.env.OTPEMAILSUBJECT,
+            text:`${process.env.OTPEMAILTEXT} ${result.otp} `
+        }
+        await emailSender(obj)
+        res.status(200).json({ message: "User created successfully", result })
 
     } catch (error) {
         console.log(error)
@@ -25,7 +34,7 @@ const Signup = async (req, res) => {
     }
 }
 
-const Login = async (req, res) => {
+const login = async (req, res) => {
     try {
         const { email, password } = req.body
         const user = await UserModel.findOne({ email })
@@ -88,40 +97,18 @@ const sendEmail = async (req, res) => {
 
     const { email } = req.body
     const user = await UserModel.findOne({ email })
-
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ success: false, message: "User not found" })
     }
-    const otpCode = Math.floor(Math.random() * 9000) + 1000
-    const otpData = new otpModel({
-        userId: user._id,
-        otp: otpCode,
-        expireIn: Date.now() + 10 * 60 * 1000
-    })
-    await otpData.save()
-    console.log(otpData)
-
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'bibi33243@gmail.com',
-            pass: 'mgkwjhxgaljridbp'
-        }
-    })
-
-    const mailOptions = {
-        from: 'bibi33243@gmail.com',
-        to: user.email,
-        subject: 'OTP Sended',
-        text: `Enter the following OTP to reset password : ${otpCode}`
+   const result= await OTPService({newUser: user})
+    console.log(result)
+    const obj = {
+        email:user.email,
+        subject:process.env.OTPEMAILSUBJECT,
+        text:`${process.env.OTPEMAILTEXT} ${result.otp} `
     }
-
-    try {
-        const result = await transporter.sendMail(mailOptions)
-        return res.status(200).json({ message: 'Email sent successfully', result });
-    } catch (error) {
-        return res.status(500).json({ message: error });
-    }
+    await emailSender(obj)
+    res.json({success:true,message:result})
 }
 
 const verifyOtpAndResetPassword = async (req, res) => {
@@ -173,8 +160,8 @@ const verifyOtp = async(req,res)=>{
     }
     user.isVerified = true
     await user.save()
-    return res.status(200).json({ message: 'you are now verified user' });
+    return res.status(200).json({ message: 'you are now verified user',user });
 
 
 }
-export { Signup, Login, changeUserPassword, sendEmail, verifyOtpAndResetPassword, verifyOtp };
+export { signup, login, changeUserPassword, sendEmail, verifyOtpAndResetPassword, verifyOtp };
