@@ -26,7 +26,7 @@ const signup = async (req, res) => {
             text:`${process.env.OTPEMAILTEXT} ${result.otp} `
         }
         await emailSender(obj)
-        res.status(200).json({ message: "User created successfully", result })
+        res.status(200).json({ message: "User created successfully" })
 
     } catch (error) {
         console.log(error)
@@ -53,7 +53,7 @@ const login = async (req, res) => {
         return res.status(200).json({ success: true, message: "Login succesfully", token })
 
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Invalid password" })
+        return res.status(500).json({ success: false, message: error })
     }
 }
 
@@ -93,8 +93,8 @@ const changeUserPassword = async (req, res) => {
 
 }
 
-const sendEmail = async (req, res) => {
-
+const forgetPassword = async (req, res) => {
+    try{
     const { email } = req.body
     const user = await UserModel.findOne({ email })
     if (!user) {
@@ -108,10 +108,14 @@ const sendEmail = async (req, res) => {
         text:`${process.env.OTPEMAILTEXT} ${result.otp} `
     }
     await emailSender(obj)
-    res.json({success:true,message:result})
+    res.json({success:true})
+}catch(error){
+    return res.status(404).json({ message: error });
+}
 }
 
 const verifyOtpAndResetPassword = async (req, res) => {
+    try{
     const { email, otp, newPassword } = req.body;
 
     if (!newPassword || typeof newPassword !== 'string') {
@@ -140,10 +144,15 @@ const verifyOtpAndResetPassword = async (req, res) => {
     await otpModel.deleteOne({ _id: otpDocument._id });
 
     return res.status(200).json({ message: 'Password reset successfully' });
+    
+}
+catch(error){
+    return res.status(404).json({ message: error });
+}
 };
 
 const verifyOtp = async(req,res)=>{
-
+ try{
     const{otp}= req.body
     // Find the OTP document
     
@@ -161,7 +170,10 @@ const verifyOtp = async(req,res)=>{
     user.isVerified = true
     await user.save()
     return res.status(200).json({ message: 'you are now verified user',user });
-
+}
+catch(error){
+    return res.status(404).json({ message: error });
+}
 
 }
-export { signup, login, changeUserPassword, sendEmail, verifyOtpAndResetPassword, verifyOtp };
+export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp };
