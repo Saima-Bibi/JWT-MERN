@@ -1,3 +1,4 @@
+import transactionModel from '../models/transaction.js';
 import UserModel from '../models/user.js'
 import UserAccountModel from '../models/userAccount.js'
 import generateRandomString from '../services/RandomString.js'
@@ -34,27 +35,84 @@ try {
     console.log(error)
 }
 }
+const getAccountsById = async(req,res)=>{
 
-const updateAccount = async(req,res)=>{
+try {
+    
+    const accounts = await UserAccountModel.find({userId:req.user.userId})
+    if(!accounts){
+        returnres.status(400).json({ message: 'No account found' });
+    }
+    console.log(accounts)
+    res.status(200).json({sucess:true, message:`accounts displayed successfully, your Email: ${req.user.email}`,accounts})
 
+} catch (error) {
+    res.status(500).json({sucess:false, message:error})
+    console.log(error)
+}
+
+}
+const depositAmount= async(req,res)=>{
+
+try {
+    
+    const {accountNumber,amount} = req.body
+
+    
+    if(!accountNumber || !amount){
+        return res.status(404).json({success:false,message:'Enter both Account Number and Amount to deposit money'})
+    }
+
+    const account = await UserAccountModel.findOne({accountNumber})
+
+    const updatedAccount = await UserAccountModel.findByIdAndUpdate(account._id,{balance:account.balance+amount},{new:true})
+    if(!updatedAccount){
+        return res.status(404).json({success:false,message:'User not found'})
+       }
+       return res.status(200).json({success:true,message:`Amount deposited successfully to Account: ${accountNumber} `})
+
+
+} catch (error) {
+    res.status(500).json({sucess:false, message:error})
+    console.log(error)
+}
+
+}
+const transferAmount = async(req,res)=>{
+
+    
     try {
    
-    const Id = req.params.id
-
-    const {accountNumber, amount} = req.body
-    if(Object.keys(req.body).length === 0){
+    const {accountNumberFrom, accountNumberTo, amount} = req.body
+    if(!accountNumberFrom || !accountNumberTo || !amount){
         return res.status(404).json({success:false,message:'Enter info to update'})
     }
-    const anotherUser = await UserAccountModel.findOne({accountNumber})
-    if(!anotherUser){
+    const sender = await UserAccountModel.findOne({accountNumber:accountNumberFrom})
+    const receiver = await UserAccountModel.findOne({accountNumber:accountNumberTo})
+    console.log(sender)
+    if(!sender || !receiver){
+        return res.status(404).json({success:false,message:'Account not found'})
+    }
+    if(sender.balance < amount){
+        return res.json({success:false,message:'Insufficient Balance'})
+    }
+    const senderAccount = await UserAccountModel.findByIdAndUpdate(sender.id,{balance:sender.balance-amount},{new:true})
+    const receiverAccount = await UserAccountModel.findByIdAndUpdate(receiver.id,{balance:receiver.balance+amount},{new:true})
+    
+    if(!senderAccount|| !receiverAccount){
         return res.status(404).json({success:false,message:'User not found'})
-    }
+       }
 
-    const updatedAccount = await UserAccountModel.findByIdAndUpdate(anotherUser.id,{balance:+amount},{new:true})
-    if(!updatedAccount){
-     return res.status(404).json({success:false,message:'User not found'})
-    }
-    return res.status(200).json({success:true,message:'Account updated successfully '})
+     const transaction =  new transactionModel({
+        SenderName: sender.accountHolderName, 
+        SenderAccount:sender.accountNumber,
+        ReceiverName:receiver.accountHolderName,
+        ReceiverAccount:receiver.accountNumber,
+        ReceivedAmount:amount
+    })
+    await transaction.save()
+   
+    return res.status(200).json({success:true,message:'Amount sent successfully '})
         
     } catch (error) {
         res.status(500).json({sucess:false, message:error})
@@ -67,9 +125,7 @@ const deleteAccount= async(req,res)=>{
 try {
     const {id} = req.params
     console.log(id)
-    // if( id === '' || id === undefined || id === null){
-    //     return res.status(404).json({success:false, message:'give Id to delete Account'})
-    // }
+   
     const deletedAccount = await UserAccountModel.findByIdAndDelete(id)
     if(!deletedAccount){
         return res.status(404).json({success:false,message:'User not found'})
@@ -81,4 +137,4 @@ try {
     console.log(error)  
 }
 }
-export {createAccount, getAccounts, updateAccount, deleteAccount}
+export {createAccount, getAccounts,getAccountsById,depositAmount, transferAmount, deleteAccount}
