@@ -6,7 +6,7 @@ const userAccountSchema = new mongoose.Schema({
     accountNumber:{type:String, required:true, trim:true},
     bankName:{type:String, required:true, trim:true},
     balance:{type:Number, default:0, trim:true},
-},{timestamp:true})
+},{timestamps:true})
 
 const UserAccountModel = mongoose.model('userBankAccount',userAccountSchema)
 
