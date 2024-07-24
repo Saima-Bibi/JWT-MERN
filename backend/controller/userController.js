@@ -6,6 +6,7 @@ import { OTPService } from "../services/otpService.js";
 import { emailSender } from "../services/emailSender.js";
 
 
+
 const signup = async (req, res) => {
     try {
         const { name, email, password, address, phone } = req.body
@@ -49,7 +50,7 @@ const login = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid password" })
         }
 
-        const token = jwt.sign({ userId: user._id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '3d' })
+        const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, process.env.SECRET_KEY, { expiresIn: '3d' })
         return res.status(200).json({ success: true, message: "Login succesfully", token })
 
     } catch (error) {
@@ -176,4 +177,16 @@ catch(error){
 }
 
 }
-export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp };
+
+const uploadImage = async(req,res) => { 
+
+const user = await UserModel.findByIdAndUpdate(req.user.userId,{image:req.file.path},{new:true})
+if(!user){
+    return res.status(404).json({ message: 'User not found' });
+}
+
+return res.status(200).json({ message: 'Image uploaded successfully' ,Info: req.file});
+
+
+}
+export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp,uploadImage };

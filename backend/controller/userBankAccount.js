@@ -3,6 +3,7 @@ import transactionModel from '../models/transaction.js';
 import UserModel from '../models/user.js'
 import UserAccountModel from '../models/userAccount.js'
 import generateRandomString from '../services/RandomString.js'
+import exceljs from 'exceljs'
 
 const createAccount = async (req, res) => {
     try {
@@ -62,12 +63,12 @@ const getAccountsById = async (req, res) => {
             {
                 $project: {
                     userId: 0,
-                    'user._id':0,
                     'user.name': 0,
                     'user.password': 0,
                     'user.phone': 0,
                     'user.address': 0,
-                    'user.isVerified':0
+                    'user.isVerified':0,
+                    'user.__v':0
                 }
             }
         ]);
@@ -137,9 +138,7 @@ const transferAmount = async (req, res) => {
 
         const transaction = new transactionModel({
             SenderId: sender.id, //
-            SenderAccount: sender.accountNumber,
             ReceiverId: receiver.id,
-            ReceiverAccount: receiver.accountNumber,
             ReceivedAmount: amount
         })
         await transaction.save()
@@ -177,24 +176,83 @@ const deleteAccount = async (req, res) => {
 }
 //tran-history
 const getTransactionHistory = async (req, res) => {
-
     try {
-
         const accounts = await UserAccountModel.find({ userId: req.user.userId })
-
-        if (!accounts) {
+        if (accounts.length < 1) {
             return res.status(400).json({ message: 'No account found' });
         }
-        console.log(accounts)
 
+        const accountIds = accounts.map(account => account._id)
 
-        const history = await transactionModel.find({ SenderAccount: req.query.accountNumber }).sort({ createdAt: -1 })
-        console.log(history)
+        var history = await transactionModel.find({
+            $or: [
+                { SenderId: { $in: accountIds } },
+                { ReceiverId: { $in: accountIds } }
+            ]
+        }).sort({ createdAt: -1 }).populate({ path: 'SenderId ReceiverId', select: 'accountHolderName accountNumber _id' });
+
         if (!history) {
             return res.status(400).json({ message: 'No transactions found' });
         }
 
-        res.status(200).json({ sucess: true, message: 'transactions displayed successfully', Email: req.user.email, history })
+        const excelData = history.map(transaction => {
+            const Type = accountIds
+                .filter(id => id.toString() == transaction.SenderId._id.toString())
+                .length > 0 
+                    ? 'Sent' 
+                    : 'Received';
+            const excelRow = {
+                Sender: transaction.SenderId.accountHolderName,
+                SenderAccount: transaction.SenderId.accountNumber,
+                Receiver: transaction.ReceiverId.accountHolderName,
+                ReceiverAccount: transaction.ReceiverId.accountNumber,
+                ReceivedAmount: transaction.ReceivedAmount,
+                Type,
+                TransactionDate: transaction.createdAt,
+            };
+            return excelRow;
+        });
+
+        console.log(excelData);
+        const workBook = new exceljs.Workbook()
+        const workSheet = workBook.addWorksheet('transaction history')
+
+        workSheet.columns = [
+            { header: 'Sr no.', key: 'sr_no', width: '10' },
+            { header: 'Sender Name', key: 'Sender', width: '20' },
+            { header: 'Sender Account', key: 'SenderAccount', width: '20' },
+            { header: 'Receiver Name', key: 'Receiver', width: '20' },
+            { header: 'Receiver Account', key: 'ReceiverAccount', width: '20' },
+            { header: 'Amount', key: 'ReceivedAmount', width: '10' },
+            { header: 'Action', key: 'Type', width: '10' },
+            { header: 'Date', key: 'TransactionDate', width: '10' },
+        ]
+
+        let counter = 1
+        excelData.forEach((user) => {
+            user.sr_no = counter
+            workSheet.addRow(user)
+            counter++
+        })
+
+        workSheet.getRow(1).eachCell((cell) => {
+            { cell.font = { bold: true } }
+        })
+        res.setHeader(
+            "Content-Type",
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=transactions.xlsx`
+        )
+
+
+        return workBook.xlsx.write(res).then(() =>
+            console.log('excel file downloaded')
+        )
+
+
 
     } catch (error) {
 
