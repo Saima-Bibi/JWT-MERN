@@ -51,7 +51,7 @@ const login = async (req, res) => {
         }
 
         const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, process.env.SECRET_KEY, { expiresIn: '3d' })
-        return res.status(200).json({ success: true, message: "Login succesfully", token })
+        return res.status(200).json({ success: true, message: "Login succesfully",name:user.name,email:user.email,image:user.image ,token })
 
     } catch (error) {
         return res.status(500).json({ success: false, message: error })
@@ -180,12 +180,12 @@ catch(error){
 
 const uploadImage = async(req,res) => { 
 
-const user = await UserModel.findByIdAndUpdate(req.user.userId,{image:req.file.path},{new:true})
+const user = await UserModel.findByIdAndUpdate(req.user.userId,{image:`http://localhost:4003/file/${req.file.filename}`},{new:true})
 if(!user){
     return res.status(404).json({ message: 'User not found' });
 }
 
-return res.status(200).json({ message: 'Image uploaded successfully' ,Info: req.file});
+return res.status(200).json({ message: 'Image uploaded successfully' ,Info: req.file, Image:`http://localhost:4003/file/${req.file.filename}`});
 
 
 }

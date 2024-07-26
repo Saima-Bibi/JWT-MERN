@@ -4,6 +4,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import userRouter from './routes/userRoute.js'
 import bankRouter from './routes/bankAccRoutes.js'
+import beneficaryRouter from './routes/beneficiaryRoutes.js'
 
 const app = express()
 dotenv.config()
@@ -12,9 +13,11 @@ const PORT = process.env.PORT || 4004
 dbCon()
 app.use(cors())
 app.use(express.json())
+app.use('/file', express.static('uploads'))
 
 app.use('/user',userRouter)
 app.use('/BankAccount',bankRouter)
+app.use('/Beneficary',beneficaryRouter)
 
 app.listen(PORT,()=>{
     console.log(`Server is running on ${PORT}!!`)

@@ -4,6 +4,7 @@ import { protect } from '../middleware/Auth.js'
 import validationRules from '../middleware/validation.js'
 import { validateRequest } from '../middleware/ValidateRequest.js'
 import multer from 'multer'
+import path from 'path'
 
 const userRouter = express.Router()
 
@@ -13,7 +14,7 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
      
-      cb(null, file.originalname)
+      cb(null, `${file.originalname.split('.').slice(0, -1)}_${Date.now()}${path.extname(file.originalname)}`)
     }
   })
   
