@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const benificiarySchema = new mongoose.Schema(
+const beneficiarySchema = new mongoose.Schema(
     {
         user:{type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
         name:{type:String, required:true, trim:true},
@@ -12,5 +12,5 @@ const benificiarySchema = new mongoose.Schema(
     },
 {timestamps:true})
 
-const benificiaryModel = mongoose.model('benificiary',benificiarySchema)
-export default benificiaryModel
+const beneficiaryModel = mongoose.model('benificiary',beneficiarySchema)
+export default beneficiaryModel
