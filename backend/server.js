@@ -5,8 +5,10 @@ import dotenv from 'dotenv'
 import userRouter from './routes/userRoute.js'
 import bankRouter from './routes/bankAccRoutes.js'
 import beneficaryRouter from './routes/beneficiaryRoutes.js'
+import messageRouter from './routes/messageRoute.js'
+import { app, server } from './SocketIO/server.js'
 
-const app = express()
+
 dotenv.config()
 const PORT = process.env.PORT || 4004
 
@@ -18,8 +20,9 @@ app.use('/file', express.static('uploads'))
 app.use('/user',userRouter)
 app.use('/BankAccount',bankRouter)
 app.use('/Beneficary',beneficaryRouter)
+app.use('/message',messageRouter)
 
-app.listen(PORT,()=>{
+server.listen(PORT,()=>{
     console.log(`Server is running on ${PORT}!!`)
 })
 
