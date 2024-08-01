@@ -4,11 +4,12 @@ import jwt from 'jsonwebtoken'
 import otpModel from "../models/userOTP.js";
 import { OTPService } from "../services/otpService.js";
 import { emailSender } from "../services/emailSender.js";
+import createTokenAndSaveCookies from "../services/jwt.js";
 
 
 
 const signup = async (req, res) => {
-    try {
+    try { console.log(req.body)
         const { name, email, password, address, phone } = req.body
 
         const user = await UserModel.findOne({ email })
@@ -16,7 +17,7 @@ const signup = async (req, res) => {
             return res.status(400).json({ message: "User's already exists" })
         }
         const hashedPass = await bcryptjs.hash(password, 10)
-        const newUser = new UserModel({ name, email, password: hashedPass, address, phone })
+        const newUser = new UserModel({ name, email, password: hashedPass, address, phone, image:`http://localhost:4003/file/${req.file.filename}` })
         await newUser.save()
         console.log(newUser)
         const result = await OTPService({newUser} )
@@ -39,6 +40,7 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body
         const user = await UserModel.findOne({ email })
+        
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" })
         }
@@ -50,8 +52,9 @@ const login = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid password" })
         }
 
-        const token = jwt.sign({ userId: user._id, email: user.email, name: user.name }, process.env.SECRET_KEY, { expiresIn: '3d' })
-        return res.status(200).json({ success: true, message: "Login succesfully",name:user.name,email:user.email,image:user.image ,token })
+        const createdToken = createTokenAndSaveCookies(user, res)
+        
+        return res.status(200).json({ success: true, message: "Login succesfully",name:user.name,email:user.email,image:user.image ,createdToken })
 
     } catch (error) {
         return res.status(500).json({ success: false, message: error })

@@ -4,7 +4,7 @@ const validationRules = {
         email: { required: true, type: 'string', regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
         password: { required: true, type: 'string',minLength: 8 , maxLength: 8, regex: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[\W_]).{8,}$/ },
         address: { required: true, type: 'string', regex: /^[a-zA-Z0-9#\-]+$/ },
-        phone: { required: true, type: 'number', maxLength: 15, regex: /^\+?[0-9]{10,15}$/ },
+        phone: { required: true, type: 'string', regex: /^\d{10,15}$/ },
     },
     '/login': {
         email: { required: true, type: 'string', regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },

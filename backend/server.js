@@ -7,6 +7,7 @@ import bankRouter from './routes/bankAccRoutes.js'
 import beneficaryRouter from './routes/beneficiaryRoutes.js'
 import messageRouter from './routes/messageRoute.js'
 import { app, server } from './SocketIO/server.js'
+import bodyParser from 'body-parser'
 
 
 dotenv.config()
@@ -16,6 +17,8 @@ dbCon()
 app.use(cors())
 app.use(express.json())
 app.use('/file', express.static('uploads'))
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}))
 
 app.use('/user',userRouter)
 app.use('/BankAccount',bankRouter)
