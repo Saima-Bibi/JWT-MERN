@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
   
   const upload = multer({ storage })
 
-userRouter.post('/signup', upload.single('file'),validateRequest(validationRules), signup)
+userRouter.post('/signup', upload.single('image'),validateRequest(validationRules), signup)
 userRouter.post("/login",validateRequest(validationRules), login)
 userRouter.post('/change-Password', protect,validateRequest(validationRules), changeUserPassword)
 userRouter.post('/forget-Password',validateRequest(validationRules), forgetPassword)

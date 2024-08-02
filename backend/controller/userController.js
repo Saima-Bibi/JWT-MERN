@@ -11,13 +11,13 @@ import createTokenAndSaveCookies from "../services/jwt.js";
 const signup = async (req, res) => {
     try { console.log(req.body)
         const { name, email, password, address, phone } = req.body
-
+        console.log(req.file)
         const user = await UserModel.findOne({ email })
         if (user) {
-            return res.status(400).json({ message: "User's already exists" })
+            return res.status(400).json({ message: "User already exists" })
         }
         const hashedPass = await bcryptjs.hash(password, 10)
-        const newUser = new UserModel({ name, email, password: hashedPass, address, phone, image:`http://localhost:4003/file/${req.file.filename}` })
+        const newUser = new UserModel({ name, email, password: hashedPass, address, phone, image: req.file ? `http://localhost:4003/image/${req.file.filename}`: ' ' })
         await newUser.save()
         console.log(newUser)
         const result = await OTPService({newUser} )
