@@ -10,21 +10,21 @@ function validateRequest(rules) {
             const value = req.body[field];
 
             if (rule.required && (value === undefined || value === null || value === '')) {
-                return res.status(400).send(`Missing required field: ${field}`);
+                return res.status(400).send({message:`Missing required field: ${field}`});
             }
 
             if (rule.type && typeof value !== rule.type) {
-                return res.status(400).send(`Invalid type for field: ${field}`);
+                return res.status(400).send({message:`Invalid type for field: ${field}`});
             }
 
             if (rule.minLength && value.length < rule.minLength) {
-                return res.status(400).send(`Field ${field} must be at least ${rule.minLength} characters long`);
+                return res.status(400).send({message:`Field ${field} must be at least ${rule.minLength} characters long`});
             }
             if (rule.maxLength && value.length > rule.maxLength) {
-                return res.status(400).send(`Field ${field} must not be longer than ${rule.maxLength} characters`);
+                return res.status(400).send({message:`Field ${field} must not be longer than ${rule.maxLength} characters`});
             }
             if (rule.regex && !rule.regex.test(value)) {
-                return res.status(400).send(`Invalid format for field: ${field}`);
+                return res.status(400).send({message:`Invalid format for field: ${field}`});
             }
         }
 

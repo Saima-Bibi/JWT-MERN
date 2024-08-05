@@ -9,27 +9,24 @@ import createTokenAndSaveCookies from "../services/jwt.js";
 
 
 const signup = async (req, res) => {
-    try { console.log(req.body)
+    try {
         const { name, email, password, address, phone } = req.body
-        console.log(req.file)
         const user = await UserModel.findOne({ email })
         if (user) {
             return res.status(400).json({ message: "User already exists" })
         }
         const hashedPass = await bcryptjs.hash(password, 10)
-        const newUser = new UserModel({ name, email, password: hashedPass, address, phone, image: req.file ? `http://localhost:4003/image/${req.file.filename}`: ' ' })
+        const newUser = new UserModel({ name, email, password: hashedPass, address, phone, image: req.file ? `http://localhost:4003/image/${req.file.filename}` : ' ' })
         await newUser.save()
-        console.log(newUser)
-        const result = await OTPService({newUser} )
-        console.log(result.otp)
+        const result = await OTPService({ newUser })
         const obj = {
-            email:newUser.email,
-            subject:process.env.OTPEMAILSUBJECT,
-            text:`${process.env.OTPEMAILTEXT} ${result.otp} `
+            email: newUser.email,
+            subject: process.env.OTPEMAILSUBJECT,
+            text: `${process.env.OTPEMAILTEXT} ${result.otp} `
         }
         await emailSender(obj)
-        res.status(200).json({ message: "User created successfully" })
-
+        console.log('here')
+        res.status(200).json({ message: "User created successfully",newUser })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Internal server error" })
@@ -40,11 +37,11 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body
         const user = await UserModel.findOne({ email })
-        
+
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" })
         }
-        if(user.isVerified === false ){
+        if (user.isVerified === false) {
             return res.json({ success: false, message: "first verify otp to become verified user" })
         }
         const validPass = await bcryptjs.compare(password, user.password)
@@ -53,8 +50,8 @@ const login = async (req, res) => {
         }
 
         const createdToken = createTokenAndSaveCookies(user, res)
-        
-        return res.status(200).json({ success: true, message: "Login succesfully",name:user.name,email:user.email,image:user.image ,createdToken })
+
+        return res.status(200).json({ success: true, message: "Login succesfully", name: user.name, email: user.email, image: user.image, createdToken })
 
     } catch (error) {
         return res.status(500).json({ success: false, message: error })
@@ -98,98 +95,98 @@ const changeUserPassword = async (req, res) => {
 }
 
 const forgetPassword = async (req, res) => {
-    try{
-    const { email } = req.body
-    const user = await UserModel.findOne({ email })
-    if (!user) {
-        return res.status(404).json({ success: false, message: "User not found" })
+    try {
+        const { email } = req.body
+        const user = await UserModel.findOne({ email })
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" })
+        }
+        const result = await OTPService({ newUser: user })
+        console.log(result)
+        const obj = {
+            email: user.email,
+            subject: process.env.OTPEMAILSUBJECT,
+            text: `${process.env.OTPEMAILTEXT} ${result.otp} `
+        }
+        await emailSender(obj)
+        res.json({ success: true })
+    } catch (error) {
+        return res.status(404).json({ message: error });
     }
-   const result= await OTPService({newUser: user})
-    console.log(result)
-    const obj = {
-        email:user.email,
-        subject:process.env.OTPEMAILSUBJECT,
-        text:`${process.env.OTPEMAILTEXT} ${result.otp} `
-    }
-    await emailSender(obj)
-    res.json({success:true})
-}catch(error){
-    return res.status(404).json({ message: error });
-}
 }
 
 const verifyOtpAndResetPassword = async (req, res) => {
-    try{
-    const { email, otp, newPassword } = req.body;
+    try {
+        const { email, otp, newPassword } = req.body;
 
-    if (!newPassword || typeof newPassword !== 'string') {
-        return res.status(400).json({ message: 'Invalid new password' });
+        if (!newPassword || typeof newPassword !== 'string') {
+            return res.status(400).json({ message: 'Invalid new password' });
+        }
+
+        const user = await UserModel.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find the OTP document
+        const otpDocument = await otpModel.findOne({ userId: user._id, otp });
+
+        if (!otpDocument || otpDocument.expireIn < Date.now()) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        // Update the password
+        const hashedPass = await bcryptjs.hash(newPassword, 10);
+        user.password = hashedPass
+        await user.save();
+
+        // Delete the OTP document after successful password reset
+        await otpModel.deleteOne({ _id: otpDocument._id });
+
+        return res.status(200).json({ message: 'Password reset successfully' });
+
+    }
+    catch (error) {
+        return res.status(404).json({ message: error });
+    }
+};
+
+const verifyOtp = async (req, res) => {
+    try {
+        const { otp } = req.body
+        // Find the OTP document
+
+        const otpDocument = await otpModel.findOne({ otp });
+
+        if (!otpDocument || otpDocument.expireIn < Date.now()) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        const user = await UserModel.findById({ _id: otpDocument.userId })
+        console.log(user)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        user.isVerified = true
+        await user.save()
+        return res.status(200).json({ message: 'you are now verified user', user });
+    }
+    catch (error) {
+        return res.status(404).json({ message: error });
     }
 
-    const user = await UserModel.findOne({ email });
+}
 
+const uploadImage = async (req, res) => {
+
+    const user = await UserModel.findByIdAndUpdate(req.user.userId, { image: `http://localhost:4003/file/${req.file.filename}` }, { new: true })
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Find the OTP document
-    const otpDocument = await otpModel.findOne({ userId: user._id, otp });
-
-    if (!otpDocument || otpDocument.expireIn < Date.now()) {
-        return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
-
-    // Update the password
-    const hashedPass = await bcryptjs.hash(newPassword, 10);
-    user.password = hashedPass
-    await user.save();
-
-    // Delete the OTP document after successful password reset
-    await otpModel.deleteOne({ _id: otpDocument._id });
-
-    return res.status(200).json({ message: 'Password reset successfully' });
-    
-}
-catch(error){
-    return res.status(404).json({ message: error });
-}
-};
-
-const verifyOtp = async(req,res)=>{
- try{
-    const{otp}= req.body
-    // Find the OTP document
-    
-    const otpDocument = await otpModel.findOne({ otp });
-    
-    if (!otpDocument || otpDocument.expireIn < Date.now()) {
-        return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
-
-    const user = await UserModel.findById({_id:otpDocument.userId})
-    console.log(user)
-    if(!user){
-      return res.status(404).json({ message: 'User not found' });
-    }
-    user.isVerified = true
-    await user.save()
-    return res.status(200).json({ message: 'you are now verified user',user });
-}
-catch(error){
-    return res.status(404).json({ message: error });
-}
-
-}
-
-const uploadImage = async(req,res) => { 
-
-const user = await UserModel.findByIdAndUpdate(req.user.userId,{image:`http://localhost:4003/file/${req.file.filename}`},{new:true})
-if(!user){
-    return res.status(404).json({ message: 'User not found' });
-}
-
-return res.status(200).json({ message: 'Image uploaded successfully' ,Info: req.file, Image:`http://localhost:4003/file/${req.file.filename}`});
+    return res.status(200).json({ message: 'Image uploaded successfully', Info: req.file, Image: `http://localhost:4003/file/${req.file.filename}` });
 
 
 }
-export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp,uploadImage };
+export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, uploadImage };
