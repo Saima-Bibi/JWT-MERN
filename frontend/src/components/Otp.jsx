@@ -44,7 +44,7 @@ function Otp() {
 
   return (
     <div className='flex h-screen w-screen items-center justify-center bg-slate-900'>
-      <form onSubmit={handleSubmit}  className='border border-black rounded-md px-4 py-6 bg-white w-[25%]'>
+      <form onSubmit={handleSubmit}  className='border border-black rounded-md px-4 py-6 bg-white '>
         <h1 className='text-center font-bold text-lg text-green-500 mb-2'>App Name</h1>
         <h2 className='text-slate-900 font-semibold mb-1'>OTP Verification</h2>
         <div className='mb-2'>
@@ -65,10 +65,10 @@ function Otp() {
         <div>
           <button 
             type='submit' 
-            className='h-9 w-[100%] bg-green-500 text-white font-semibold rounded-md'>
+            className='h-9 w-[100%] hover:bg-green-700 bg-green-500 text-white font-semibold rounded-md'>
               Verify
           </button>
-          <h5 className='mt-1 text-center'>otp expires in 10 minutes. <span className=' text-green-500 font-medium cursor-pointer text-sm'>resend OTP</span></h5>
+          <h5 className='mt-1 text-center'>otp expires in 10 minutes. <span className='underline underline-offset-2 hover:text-green-700 text-green-500 font-medium cursor-pointer text-sm'>resend OTP</span></h5>
         </div>
       </form>
     </div>

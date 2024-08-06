@@ -9,9 +9,12 @@ import Validation from '../Validation';
 import toast from 'react-hot-toast'
 import Input from './Input'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/Authprovider';
 
 
 function Signup() {
+
+     const[authUser,setAuthUser]= useAuth()
 
      const [value, setValue] = useState({
           name: '',
@@ -59,6 +62,7 @@ function Signup() {
                if (response.data) {
                     toast.success(`${response.data.message} 4 digit otp sended to your email`)
                     localStorage.setItem('bankApp', JSON.stringify(response.data.newUser))
+                    setAuthUser(response.data)
                }
           })
                .catch((error) => {
@@ -155,14 +159,14 @@ function Signup() {
                               validation={Validation}
                          />
                          <label className="input input-bordered flex items-center gap-2 mb-1  text-sm text-gray-400  border-gray-400 h-9">
-                              <input type="file" name='image' onChange={handleChange} className="grow " />
+                              <input type="file" name='image' required onChange={handleChange} className="grow " />
                          </label>
                     </div>
 
                     <div>
 
-                         <button type='submit' className='h-9 w-[100%] bg-green-500 text-white font-semibold rounded-md'>Signup</button>
-                         <h5 className='mt-1 text-center'>already have account?<span className=' text-green-500 font-semibold cursor-pointer '>Login here</span></h5>
+                         <button type='submit' className='h-9 w-[100%] bg-green-500 hover:bg-green-700 text-white font-semibold rounded-md'>Signup</button>
+                         <h5 className='mt-1 text-center'>already have account? <Link to='/login' className='underline underline-offset-2 hover:text-green-700 text-green-500 font-semibold cursor-pointer '>Login here</Link></h5>
                     </div>
                </form>
 

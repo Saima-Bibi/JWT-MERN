@@ -41,8 +41,8 @@ const login = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" })
         }
-        if (user.isVerified === false) {
-            return res.json({ success: false, message: "first verify otp to become verified user" })
+        if (!user.isVerified ) {
+            return res.status(404).json({ success: false, message: "first verify otp to become verified user" })
         }
         const validPass = await bcryptjs.compare(password, user.password)
         if (!validPass) {
@@ -178,15 +178,51 @@ const verifyOtp = async (req, res) => {
 
 }
 
-const uploadImage = async (req, res) => {
+const updateProfile = async (req, res) => {
 
-    const user = await UserModel.findByIdAndUpdate(req.user.userId, { image: `http://localhost:4003/file/${req.file.filename}` }, { new: true })
+   try {
+    
+    const{name, email, address, phone}= req.body
+
+    const user = await UserModel.findByIdAndUpdate(req.user.userId, {name:name, email:email , address: address, phone:phone, image: `http://localhost:4003/image/${req.file.filename}` }, { new: true })
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    return res.status(200).json({ message: 'Image uploaded successfully', Info: req.file, Image: `http://localhost:4003/file/${req.file.filename}` });
+    return res.status(200).json({ message: 'Profile updated successfully', Info: req.file, Image: `http://localhost:4003/image/${req.file.filename}` });
 
+
+
+   } catch (error) {
+    return res.status(404).json({ message: error });
+   }
+}
+
+const resendOtp = async(req,res)=>{
+try {
+    
+    console.log(req.user.userId)
+    const user = await UserModel.findById(req.user.userId)
+    console.log(user)
+
+    if(!user){
+      return  res.status(400).json({message:"user not found"})
+    }
+    const result = await OTPService({ newUser:user })
+    const obj = {
+        email: user.email,
+        subject: process.env.OTPEMAILSUBJECT,
+        text: `${process.env.OTPEMAILTEXT} ${result.otp} `
+    }
+    await emailSender(obj)
+    res.status(200).json({message:"otp sent to your email"})
+
+} catch (error) {
+    console.log(error)
+    return res.status(404).json({ message: error });
+    
+}
 
 }
-export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, uploadImage };
+
+export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, updateProfile , resendOtp };

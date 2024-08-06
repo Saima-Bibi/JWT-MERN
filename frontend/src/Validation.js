@@ -1,4 +1,4 @@
-const namePattern = /^[a-zA-Z]{3,10}$/
+const namePattern = /^[a-zA-Z ]{3,15}$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8}$/
 const addressPattern = /^[a-zA-Z0-9#\-]+$/
@@ -12,7 +12,7 @@ function Validation(values){
  if (values.name === '') {
     errors.name = 'Name is required';
   } else if (!namePattern.test(values.name)) {
-    errors.name = 'Name must be 3-10 characters long and contain only alphabets';
+    errors.name = 'Name must be 3-15 characters long and contain only alphabets';
   }
 
   // Validate email
