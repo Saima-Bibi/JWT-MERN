@@ -6,12 +6,35 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import Validation from '../Validation';
 import { useAuth } from '../context/Authprovider';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 function Login() {
 
-  const[authUser,setAuthUser]= useAuth()
+const[authUser,setAuthUser]= useAuth()
+const navigate = useNavigate()
+
+  const handleClick = async()=>{
+    try {
+      
+      const user = JSON.parse(localStorage.getItem('bankApp'));
+      const email = user.email
+      console.log(email)
+   
+   const res = await axios.post(`api/user/forget-Password?email=${email}`)
+ 
+   if(res.data){
+    toast.success(res.data.message)
+    navigate('/forgetPassword')
+   }
+
+    } catch (error) {
+       if(error.response){
+      toast.error(error.response.data.message)
+      console.log(error)
+    }
+    }
+  }
 
   const[value,setValue]= useState({
     email:'',
@@ -27,12 +50,15 @@ setValue({
  const handleSubmit = async(e)=>{
   e.preventDefault()
 Validation(value)
-  await axios.post('http://localhost:4003/user/login',value)
+  await axios.post('/api/user/login',value,{
+    withCredentials: true
+  })
   .then((response=>{
     if(response.data){
       toast.success(response.data.message)
-      localStorage.setItem("bankApp",JSON.stringify(response.data))
+      //localStorage.setItem("bankApp",JSON.stringify(response.data))
       setAuthUser(response.data)
+      localStorage.removeItem('bankApp')
     }
   })).catch((error)=>{
     if(error.response){
@@ -89,7 +115,7 @@ Validation(value)
                    <div>
           
           <button className='h-9 w-[100%] bg-green-500 hover:bg-green-700  text-white font-semibold rounded-md'>Login</button>
-          <h5 className='mt-1 text-center'><span className=' underline underline-offset-2 text-green-500 hover:text-green-700  font-medium cursor-pointer text-sm'>forget password?</span></h5>
+          <h5 className='mt-1 text-center'><span className=' underline underline-offset-2 text-green-500 hover:text-green-700  font-medium cursor-pointer text-sm' onClick={handleClick}>forget password?</span></h5>
           <h5 className='mt-1 text-center'>new User?<Link to='/sign-up' className=' underline underline-offset-2 text-green-500 hover:text-green-600  font-medium cursor-pointer text-sm'>signup here</Link></h5>
 
         </div>

@@ -1,6 +1,7 @@
 const namePattern = /^[a-zA-Z ]{3,15}$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8}$/
+const newPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[a-zA-Z\d\W_]{8}$/
 const addressPattern = /^[a-zA-Z0-9#\-]+$/
 const phonePattern = /^\d{10,15}$/
 const otpPattern = /^\d{4}$/
@@ -28,7 +29,8 @@ function Validation(values){
   } else if (!passwordPattern.test(values.password)) {
     errors.password = 'Password must be 8 chars long including letters, nums, special char';
   }
-  
+
+
 
   // Validate address
   if (values.address === '') {
@@ -51,6 +53,12 @@ else if(!otpPattern.test(values.otp) || !typeof values.otp === 'number'){
   errors.otp = 'otp must be of 4 digits'
 }
 
+
+if (values.newPassword === '') {
+  errors.newPassword = 'new password is required';
+} else if (!newPasswordPattern.test(values.newPassword)) {
+  errors.newPassword = 'Password must be 8 chars long including letters, nums, special char';
+}
 return errors
 
 }

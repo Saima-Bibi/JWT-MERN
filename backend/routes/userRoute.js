@@ -1,5 +1,5 @@
 import express from 'express'
-import { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, updateProfile, resendOtp} from '../controller/userController.js'
+import { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, updateProfile, resendOtp,allUsers, logout} from '../controller/userController.js'
 import { protect } from '../middleware/Auth.js'
 import validationRules from '../middleware/validation.js'
 import { validateRequest } from '../middleware/ValidateRequest.js'
@@ -27,8 +27,11 @@ userRouter.post('/forget-Password',validateRequest(validationRules), forgetPassw
 userRouter.post('/verify-Otp',validateRequest(validationRules), verifyOtp)
 userRouter.post('/verifyOtp-And-ResetPassword',validateRequest(validationRules), verifyOtpAndResetPassword)
 userRouter.post('/update-Profile',protect,upload.single('image'),validateRequest(validationRules),updateProfile)
-userRouter.post('/resend-Otp',protect,resendOtp)
+userRouter.post('/resend-Otp',resendOtp)
+userRouter.get('/allUsers',protect,allUsers)
+userRouter.post('/logout',protect,logout)
 userRouter.get('/', protect, (req, res) => {
+  console.log(`this stored cookie => ${req.cookies.jwt}`)
     res.status(200).json({ message: "Authorized access, Welcome to dashboard" })
 })
 

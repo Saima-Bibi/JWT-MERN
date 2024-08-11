@@ -50,7 +50,8 @@ const login = async (req, res) => {
         }
 
         const createdToken = createTokenAndSaveCookies(user, res)
-
+   
+       
         return res.status(200).json({ success: true, message: "Login succesfully", name: user.name, email: user.email, image: user.image, createdToken })
 
     } catch (error) {
@@ -96,8 +97,8 @@ const changeUserPassword = async (req, res) => {
 
 const forgetPassword = async (req, res) => {
     try {
-        const { email } = req.body
-        const user = await UserModel.findOne({ email })
+        
+        const user = await UserModel.findOne({email:req.query.email })
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" })
         }
@@ -109,22 +110,19 @@ const forgetPassword = async (req, res) => {
             text: `${process.env.OTPEMAILTEXT} ${result.otp} `
         }
         await emailSender(obj)
-        res.json({ success: true })
+        res.status(200).json({ success: true, message: "otp sent to your email"})
     } catch (error) {
-        return res.status(404).json({ message: error });
+        return res.status(500).json({ message: error });
     }
 }
 
 const verifyOtpAndResetPassword = async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body;
-
-        if (!newPassword || typeof newPassword !== 'string') {
-            return res.status(400).json({ message: 'Invalid new password' });
-        }
-
+        const { otp, newPassword } = req.body;
+        
+        const email=  req.query.email
         const user = await UserModel.findOne({ email });
-
+        console.log(req.query.email)
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -163,7 +161,7 @@ const verifyOtp = async (req, res) => {
             return res.status(400).json({ message: 'Invalid or expired OTP' });
         }
 
-        const user = await UserModel.findById({ _id: otpDocument.userId })
+        const user = await UserModel.findOne({ _id: otpDocument.userId , email:otpDocument.userEmail})
         console.log(user)
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -201,8 +199,8 @@ const updateProfile = async (req, res) => {
 const resendOtp = async(req,res)=>{
 try {
     
-    console.log(req.user.userId)
-    const user = await UserModel.findById(req.user.userId)
+    console.log(req.query.userId)
+    const user = await UserModel.findById(req.query.userId)
     console.log(user)
 
     if(!user){
@@ -225,4 +223,38 @@ try {
 
 }
 
-export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, updateProfile , resendOtp };
+const allUsers= async(req,res)=>{
+
+    try {
+        // console.log('Authorization Header:', req.headers.authorization);
+        // console.log(req.cookies.jwt)
+       const loggedInUser = req.user.userId
+        const users = await UserModel.find({
+            _id: { $ne: loggedInUser}
+        }).select('-password')
+
+    if(!users){
+        return res.status(400).json({message:'User not found'})
+    }
+    return res.status(200).json({message:'Users found',users})
+
+    } catch (error) {
+    console.log(error)
+    return res.status(404).json({ message: error });
+    }
+}
+const logout = async(req,res)=>{
+    
+    try {
+         
+         res.clearCookie("jwt")
+         res.status(200).json({message:'User logged out successfully '})
+
+    } catch (error) {
+    console.log(error)
+    return res.status(404).json({ message: error });
+    }
+
+}
+
+export { signup, login, changeUserPassword, forgetPassword, verifyOtpAndResetPassword, verifyOtp, updateProfile , resendOtp, allUsers, logout };

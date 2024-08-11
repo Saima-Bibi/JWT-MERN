@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaUser } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { TbPassword } from "react-icons/tb";
@@ -8,13 +8,23 @@ import axios from 'axios'
 import Validation from '../Validation';
 import toast from 'react-hot-toast'
 import Input from './Input'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../context/Authprovider';
+import { Link ,  useNavigate} from 'react-router-dom'
+
+
+
 
 
 function Signup() {
 
-     const[authUser,setAuthUser]= useAuth()
+     const[signAuth,setSignAuth]= useState(false)
+     const navigate = useNavigate();
+    
+     useEffect(()=>{
+          if(signAuth){
+               navigate('/otp')
+          }
+          
+     },[signAuth, navigate])
 
      const [value, setValue] = useState({
           name: '',
@@ -53,20 +63,24 @@ function Signup() {
           formData.append('address', value.address);
           formData.append('phone', value.phone);
           formData.append('image', value.image);
-          await axios.post('http://localhost:4003/user/signup', formData, {
+          
+          await axios.post('/api/user/signup', formData, {
                headers: {
                     'Content-Type': 'multipart/form-data',
                }
           }).then((response) => {
                console.log(response)
                if (response.data) {
+                    setSignAuth(true)
+                    console.log(signAuth)
                     toast.success(`${response.data.message} 4 digit otp sended to your email`)
                     localStorage.setItem('bankApp', JSON.stringify(response.data.newUser))
-                    setAuthUser(response.data)
+                    
                }
           })
                .catch((error) => {
                     if (error.response) {
+                         setSignAuth(false)
                          console.log(error.response.data.message)
                          toast.error(error.response.data.message)
                     }
@@ -166,7 +180,7 @@ function Signup() {
                     <div>
 
                          <button type='submit' className='h-9 w-[100%] bg-green-500 hover:bg-green-700 text-white font-semibold rounded-md'>Signup</button>
-                         <h5 className='mt-1 text-center'>already have account? <Link to='/login' className='underline underline-offset-2 hover:text-green-700 text-green-500 font-semibold cursor-pointer '>Login here</Link></h5>
+                         <h5 className='mt-1 text-center'>already have an account? <Link to='/login' className='underline underline-offset-2 hover:text-green-700 text-green-500 font-semibold cursor-pointer '>Login here</Link></h5>
                     </div>
                </form>
 

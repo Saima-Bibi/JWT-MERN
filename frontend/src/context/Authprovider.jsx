@@ -6,8 +6,8 @@ export const authContext = createContext()
 
 export function Authprovider({children}) {
 
-const initialUserState = Cookies.get('jwt') || localStorage.getItem("bankApp")
-const[authUser,setAuthUser] = useState(initialUserState? JSON.parse(initialUserState): undefined)
+const initialUserState =   Cookies.get('jwt')   
+const[authUser,setAuthUser] = useState(initialUserState? initialUserState : undefined)
 
   return (
     <div>
