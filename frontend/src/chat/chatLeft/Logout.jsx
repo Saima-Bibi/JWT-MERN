@@ -3,9 +3,12 @@ import React, {useState}from 'react'
 import toast from 'react-hot-toast';
 import { SlLogout } from "react-icons/sl";
 import Cookies from 'js-cookie'
+import { CiLogout } from "react-icons/ci";
+import { useNavigate } from 'react-router-dom';
 function Logout() {
 
   const[loading, setLoading]= useState(false)
+  const navigate = useNavigate()
 
 const handleLogout = async()=>{
   setLoading(true)
@@ -17,10 +20,12 @@ const handleLogout = async()=>{
     toast(res.data.message)
     setLoading(false)
     window.location.reload()
+    navigate('/login')
     }
 
   } catch (error) {
     if(error.response){
+      localStorage.removeItem('App')
       toast(error.response.data.message)
       console.log(error)
     }
@@ -31,10 +36,11 @@ const handleLogout = async()=>{
 
 
   return (
-    <div className='h-[10vh]'>
+    <div className=''>
       
-    <button className='px-6 py-2 '>
-    <SlLogout className='text-4xl p-2  hover:bg-slate-600 rounded-md duration-300 cursor-pointer' onClick={handleLogout}/>
+    <button className='flex gap-2  ml-4'  onClick={handleLogout}>
+    <CiLogout className='text-xl  mt-1 hover:bg-slate-600 rounded-md duration-300 cursor-pointer' /> 
+    Logout
     </button>
       
     </div>

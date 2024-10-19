@@ -9,15 +9,15 @@ import { useNavigate } from "react-router-dom";
 
 function Otp() {
 
-  const[signAuth,setSignAuth]= useState(false)
+  // const[signAuth,setSignAuth]= useState(false)
   const navigate = useNavigate();
  
-  useEffect(()=>{
-       if(signAuth){
-            navigate('/login')
-       }
+  // useEffect(()=>{
+  //      if(signAuth){
+  //           navigate('/login')
+  //      }
        
-  },[signAuth, navigate])
+  // },[signAuth, navigate])
 
   const handleClick = async()=>{
     try {
@@ -65,15 +65,13 @@ function Otp() {
       .then((response) => {
         console.log(response)
         if (response.data) {
-          setSignAuth(true)
+          // setSignAuth(true)
           toast.success(response.data.message)
-
-       
-        
+          navigate('/login')
         }
       }).catch((error) => {
         if (error.response) {
-          setSignAuth(false)
+          // setSignAuth(false)
           toast.error(error.response.data.message)
           navigate('/otp')
         }

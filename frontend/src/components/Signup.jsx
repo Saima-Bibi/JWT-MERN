@@ -16,15 +16,15 @@ import { Link ,  useNavigate} from 'react-router-dom'
 
 function Signup() {
 
-     const[signAuth,setSignAuth]= useState(false)
+     // const[signAuth,setSignAuth]= useState(false)
      const navigate = useNavigate();
     
-     useEffect(()=>{
-          if(signAuth){
-               navigate('/otp')
-          }
+     // useEffect(()=>{
+     //      if(signAuth){
+     //           navigate('/otp')
+     //      }
           
-     },[signAuth, navigate])
+     // },[signAuth, navigate])
 
      const [value, setValue] = useState({
           name: '',
@@ -71,18 +71,20 @@ function Signup() {
           }).then((response) => {
                console.log(response)
                if (response.data) {
-                    setSignAuth(true)
-                    console.log(signAuth)
+                    // setSignAuth(true)
+                    // console.log(signAuth)
                     toast.success(`${response.data.message} 4 digit otp sended to your email`)
                     localStorage.setItem('bankApp', JSON.stringify(response.data.newUser))
+                    navigate('/otp')
                     
                }
           })
                .catch((error) => {
                     if (error.response) {
-                         setSignAuth(false)
+                         // setSignAuth(false)
                          console.log(error.response.data.message)
                          toast.error(error.response.data.message)
+                         navigate('/sign-up')
                     }
                     console.log(error)
                })

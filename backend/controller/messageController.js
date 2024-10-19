@@ -1,6 +1,8 @@
 import conversatonModel from "../models/conversation.js"
 import conversationModel from "../models/conversation.js"
 import messageModel from "../models/message.js"
+import { getReceiverSocketId, io } from "../SocketIO/server.js"
+
 
 const sendMessage = async(req,res)=>{
 try {
@@ -8,7 +10,7 @@ try {
  const {Message}= req.body
  const {id:receiverId}= req.params
  const senderId = req.user.userId
- console.log(receiverId)
+ console.log(Message)
 
 let conversation = await conversationModel.findOne({
     members:{$all:[senderId,receiverId]}
@@ -24,11 +26,16 @@ const msg = new messageModel({
     ReceiverId:receiverId,
     message:Message
 })
-console.log(msg)
+console.log('message before save',msg.message)
 if(msg){
     conversation.messages.push(msg._id)
 }
 await Promise.all([conversation.save(), msg.save()]) //run parallel
+const receiverSocketId = getReceiverSocketId(receiverId)
+console.log(receiverSocketId)
+if(receiverSocketId){
+    io.to(receiverSocketId).emit('msg',msg)
+}
 
 res.status(200).json({
     success:true,
@@ -36,7 +43,7 @@ res.status(200).json({
 )
 
 } catch (error) {
-    res.status(500).json({success:false, error})
+    res.status(500).json({success:false, error: error.message})
 }
 }
 
@@ -45,19 +52,21 @@ try {
     
  const {id:receiverId}= req.params
  const senderId = req.user.userId
+ console.log(receiverId, senderId)
 
- const conversation = await conversationModel.findOne({
+ let conversation = await conversationModel.findOne({
     members:{$all:[senderId,receiverId]}
- }).populate('messages')
+}).populate('messages')
 
+console.log(conversation)
  if(!conversation){
-    return res.json([])
+    return res.status(201).json({message:"no conversation found"})
  }
- 
- res.status(200).json({success:true,data:conversation.messages})
+ const messages = conversation.messages;
+ res.status(200).json({success:true, message:"all conversation found", messages})
 
 } catch (error) {
-    res.status(500).json({success:false, error})
+    res.status(500).json({success:false, error, message:'internal server error'})
 }
 }
 export {sendMessage, getMessages}

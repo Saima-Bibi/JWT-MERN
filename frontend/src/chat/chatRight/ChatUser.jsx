@@ -1,6 +1,15 @@
 import React from 'react'
+import useConversation from '../../zustand/useConversation'
+import { useSocketContex } from '../../context/socketContext'
 
 function ChatUser() {
+  const{selectedConversation}=useConversation()
+  const{ onlineUsers}= useSocketContex()
+
+  const getOnlineUsers= (userId)=>{
+   return onlineUsers.includes(userId)? "online":'offline'
+  }
+  // console.log(selectedConversation)
   return (
     <div>
       
@@ -11,8 +20,8 @@ function ChatUser() {
                     </div>
                 </div>
                 <div >
-                    <h1 className='font-semibold text-md'>Saima</h1>
-                    <span className='text-xs'>online</span>
+                    <h1 className='font-semibold text-md'>{selectedConversation.name}</h1>
+                    <span className='text-xs'>{getOnlineUsers(selectedConversation._id)}</span>
                 </div>
             </div>
 

@@ -9,31 +9,57 @@ import Resetpassword from './components/Resetpassword'
 import { Toaster } from 'react-hot-toast'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/Authprovider'
+import Loading from './components/Loading'
+import SideBar from './components/SideBar'
+import Dashboard from './components/pages/Dashboard'
+import Accounts from './components/pages/Accounts'
+import Beneficiary from './components/pages/Beneficiary'
+import Logout from './chat/chatLeft/Logout'
+import Email from './components/Email'
+import Home from './components/pages/Home'
+
 
 function App() {
 
   const [authUser, setAuthUser] = useAuth()
   console.log(authUser)
   return (
-    <div className='flex h-screen'>
-      <Routes>
-        <Route path='/' element={
+    <div className=''>
+
+
+
+
+<Routes>
+<Route path='/' element={authUser ? (<Home/>):(<Navigate to = '/login'/>)} />
+  <Route path='/login' element={ authUser ? (<Navigate to= '/'/>):(<Login/>)} />
+  <Route path='/sign-up' element={<Signup />}></Route>
+  <Route path='/otp' element={<Otp/>}></Route>
+  <Route path='/forgetPassword' element={<Forgetpassword />}></Route>
+  <Route path='/email' element={<Email />}></Route>
+  <Route path='/resetPassword' element={<Resetpassword />}></Route>
+  <Route path='/loading' element={<Loading />}></Route>
+  <Route path='/logout' element={<Logout />}></Route>
+  
+</Routes>
+
+      {/* <SideBar  >
+
+
+        <Routes>
+        <Route path="/" element={
           authUser ? (
-            <div className='flex h-screen w-screen'>
-              <ChatLeft />
-              <ChatRight />
-            </div>)
-            : (<Navigate to='/login' />
-            )
-        }></Route>
+          <Navigate to="/dashboard" />):(<Navigate to='/login' />)} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path='/beneficiary' element={<Beneficiary/>}/>
+          <Route path='/logout' element={<Logout/>}></Route>
+          <Route path='/sign-up' element={<Signup />}></Route>
+          <Route path='/login' element={authUser ? <Navigate to='/' /> : <Login />}></Route>
+        </Routes>
+   
 
-        <Route path='/sign-up' element={<Signup />}></Route>
-        <Route path='/login' element={authUser ? <Navigate to='/' /> : <Login />}></Route>
-        <Route path='/otp' element={<Otp/>}></Route>
-
-        <Route path='/forgetPassword' element={<Forgetpassword />}></Route>
-        <Route path='/resetPassword' element={<Resetpassword />}></Route>
-      </Routes>
+        </SideBar> */}
+     {/*  */}
 
       {/* <Resetpassword></Resetpassword> */}
       {/* <Forgetpassword></Forgetpassword> */}

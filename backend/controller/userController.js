@@ -52,7 +52,7 @@ const login = async (req, res) => {
         const createdToken = createTokenAndSaveCookies(user, res)
    
        
-        return res.status(200).json({ success: true, message: "Login succesfully", name: user.name, email: user.email, image: user.image, createdToken })
+        return res.status(200).json({ success: true, message: "Login succesfully",id: user._id, name: user.name, email: user.email, image: user.image, createdToken })
 
     } catch (error) {
         return res.status(500).json({ success: false, message: error })

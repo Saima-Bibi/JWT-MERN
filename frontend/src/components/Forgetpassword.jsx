@@ -10,15 +10,15 @@ import toast from 'react-hot-toast';
 
 function Forgetpassword() {
 
-  const[signAuth,setSignAuth]= useState(false)
+  // const[signAuth,setSignAuth]= useState(false)
   const navigate = useNavigate();
  
-  useEffect(()=>{
-       if(signAuth){
-            navigate('/login')
-       }
+  // useEffect(()=>{
+  //      if(signAuth){
+  //           navigate('/login')
+  //      }
        
-  },[signAuth, navigate])
+  // },[signAuth, navigate])
 
 
 
@@ -66,11 +66,11 @@ function Forgetpassword() {
     e.preventDefault()
     const error=Validation(convertedvalue)
     console.log(error)
-    const User = JSON.parse(localStorage.getItem('bankApp'));
-   const res = await axios.post(`/api/user/verifyOtp-And-ResetPassword?email=${User.email}`,convertedvalue)
+    const UserEmail = JSON.parse(localStorage.getItem('UserEmail'));
+   const res = await axios.post(`/api/user/verifyOtp-And-ResetPassword?email=${UserEmail}`,convertedvalue)
    console.log(res)
    if(res.data){
-    setSignAuth(true)
+    // setSignAuth(true)
     toast.success(res.data.message)
     navigate('/login')
    }
@@ -80,6 +80,7 @@ function Forgetpassword() {
     if(error.response){
       toast.error(error.response.data.message)
       console.log(error)
+      navigate('/forgetPassword')
     }
    }
   }
@@ -122,7 +123,7 @@ function Forgetpassword() {
         <div>
 
           <button className='h-9 w-[100%] bg-green-500 text-white font-semibold rounded-md hover:bg-green-700'>Reset Password</button>
-          <h5 className='mt-1 text-center'>otp expires in 10 minutes. <span className='underline underline-offset-2 hover:text-green-700 text-green-500 font-medium cursor-pointer text-sm' onClick={handleClick}>resend OTP</span></h5>
+          <h5 className='mt-1 text-center'>otp expires in 10 minutes. <span className='underline underline-offset-2 hover:text-green-700 text-green-500 font-medium cursor-pointer text-sm' onClick={handleClick}></span></h5>
         </div>
       </form>
 
